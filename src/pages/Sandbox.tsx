@@ -6,22 +6,24 @@ import { setupForPreset } from '../content/setup';
 import { PRESETS, getPreset, type Preset } from '../sandbox/presets';
 import { progressStore, updateSandbox } from '../lib/progress';
 import { useMedia } from '../lib/useMedia';
+import { useT } from '../lib/i18n';
 import type { SourceFile } from '../runners/types';
 
-const GROUPS: Preset['group'][] = ['Web', 'Scripting', 'Data', 'Compiled', 'Games'];
+const GROUPS: Preset['group'][] = ['Web', 'Scripting', 'Data', 'Compiled', 'Games', 'Tools'];
 
 export default function SandboxPage() {
   const [params, setParams] = useSearchParams();
   const preset = getPreset(params.get('lang') ?? 'web') ?? PRESETS[0];
+  const tr = useT();
 
   return (
     <div className="sandbox">
       <div className="sandbox-bar">
-        <strong>Sandbox</strong>
+        <strong>{tr('Sandbox')}</strong>
         <div className="preset-groups">
           {GROUPS.map((g) => (
             <div key={g} className="preset-group">
-              <span className="muted small">{g}</span>
+              <span className="muted small">{tr(g)}</span>
               <div className="chips">
                 {PRESETS.filter((p) => p.group === g).map((p) => (
                   <button key={p.id} className={'chip' + (p.id === preset.id ? ' on' : '')} onClick={() => setParams({ lang: p.id })}>
@@ -41,6 +43,7 @@ export default function SandboxPage() {
 }
 
 function SandboxView({ preset }: { preset: Preset }) {
+  const tr = useT();
   const saved = progressStore.get().sandbox[preset.id];
   const wide = useMedia('(min-width: 980px)');
   const [files, setFiles] = useState<SourceFile[]>(() => preset.files.map((f) => ({ ...f, code: saved?.[f.name] ?? f.code })));
@@ -65,13 +68,13 @@ function SandboxView({ preset }: { preset: Preset }) {
         <SetupHelp guides={setupForPreset(preset.id)} />
         <button
           className="btn ghost sm"
-          title="Download these files as a zip"
+          title={tr('Download these files as a zip')}
           onClick={async () => {
             const { downloadProject } = await import('../lib/exporter');
             await downloadProject({ files, spec: { kind: 'plain', name: 'my-' + preset.id + '-code' }, title: preset.label, description: '', stdin: stdin || undefined });
           }}
         >
-          ⬇ Download
+          ⬇ {tr('Download')}
         </button>
         </>
       }

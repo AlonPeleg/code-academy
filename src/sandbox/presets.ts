@@ -3,7 +3,7 @@ import type { RunnerConfig, SourceFile } from '../runners/types';
 export interface Preset {
   id: string;
   label: string;
-  group: 'Web' | 'Scripting' | 'Data' | 'Compiled' | 'Games';
+  group: 'Web' | 'Scripting' | 'Data' | 'Compiled' | 'Games' | 'Tools';
   config: RunnerConfig;
   files: SourceFile[];
   stdin?: string;
@@ -150,6 +150,62 @@ const reply = await fetch('https://api.academy.test/soap/calculator', {
 </soap:Envelope>\`,
 });
 console.log('SOAP result:', parseXML(await reply.text()).get('result'));`)],
+  },
+  {
+    id: 'git', label: 'Git terminal', group: 'Tools', config: { runner: 'git' },
+    files: [f('session.sh', 'shell', `
+# A practice Git terminal: type commands, press Run. Nothing leaves this page.
+git init
+echo "Hello Git" > hello.txt
+git add hello.txt
+git commit -m "First commit"
+git status
+git log --oneline`)],
+  },
+  {
+    id: 'node-backend', label: 'Node.js + Express', group: 'Scripting', config: { runner: 'js' },
+    files: [
+      f('server.js', 'javascript', `
+const express = require('express');
+const app = express();
+app.use(express.json());
+
+const todos = [{ id: 1, title: 'Learn Express', done: false }];
+
+app.get('/todos', (req, res) => res.json(todos));
+
+app.post('/todos', (req, res) => {
+  const todo = { id: todos.length + 1, title: req.body.title, done: false };
+  todos.push(todo);
+  res.status(201).json(todo);
+});
+
+const server = app.listen(3000, async () => {
+  console.log('Server is listening on port 3000');
+  // a practice server can be called with fetch, right here
+  const res = await fetch('http://localhost:3000/todos');
+  console.log(res.status, await res.json());
+  server.close();
+});`),
+    ],
+  },
+  {
+    id: 'tests', label: 'JavaScript tests', group: 'Scripting', config: { runner: 'js' },
+    files: [
+      f('math.test.js', 'javascript', `
+// Jest-style tests: describe / it / expect work here without installing anything.
+const add = (a, b) => a + b;
+
+describe('add', () => {
+  it('adds two numbers', () => {
+    expect(add(2, 3)).toBe(5);
+  });
+
+  it('works with negatives', () => {
+    expect(add(-1, -2)).toBe(-3);
+  });
+});`),
+    ],
   },
   {
     id: 'ts', label: 'TypeScript', group: 'Scripting', config: { runner: 'ts' },

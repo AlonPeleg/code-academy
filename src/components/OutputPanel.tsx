@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { LogLine, ReplayFrame, SourceFile, SqlTable } from '../runners/types';
 import { DEFAULT_SQL_SEED } from '../runners/sql';
 import { LiveGame, ReplayPlayer } from './GamePanel';
+import { useT } from '../lib/i18n';
 
 export type OutputMode = 'web' | 'text' | 'sql' | 'live' | 'replay';
 
@@ -28,6 +29,7 @@ interface Props {
 type Tab = 'main' | 'console' | 'input' | 'data';
 
 export default function OutputPanel(p: Props) {
+  const tr = useT();
   const [tab, setTab] = useState<Tab>('main');
   const errCount = p.logs.filter((l) => l.level === 'error' || l.level === 'stderr').length;
   const hasConsoleTab = p.mode === 'web' || p.mode === 'live' || p.mode === 'replay';
@@ -37,7 +39,7 @@ export default function OutputPanel(p: Props) {
     if (p.mode === 'replay' && p.replay) setTab(p.replay.frames.length ? 'main' : 'console');
   }, [p.replay, p.mode]);
 
-  const mainLabel = p.mode === 'web' ? 'Preview' : p.mode === 'sql' ? 'Result' : p.mode === 'live' || p.mode === 'replay' ? 'Game' : 'Output';
+  const mainLabel = tr(p.mode === 'web' ? 'Preview' : p.mode === 'sql' ? 'Result' : p.mode === 'live' || p.mode === 'replay' ? 'Game' : 'Output');
   const active: Tab = !hasConsoleTab && tab === 'console' ? 'main' : tab;
 
   return (
@@ -46,16 +48,16 @@ export default function OutputPanel(p: Props) {
         <button className={active === 'main' ? 'on' : ''} onClick={() => setTab('main')}>{mainLabel}</button>
         {hasConsoleTab && (
           <button className={active === 'console' ? 'on' : ''} onClick={() => setTab('console')}>
-            Console{p.logs.length > 0 && <span className={'badge' + (errCount ? ' bad' : '')}>{p.logs.length}</span>}
+            {tr('Console')}{p.logs.length > 0 && <span className={'badge' + (errCount ? ' bad' : '')}>{p.logs.length}</span>}
           </button>
         )}
         {(p.hasStdin || p.mode === 'replay') && (
           <button className={active === 'input' ? 'on' : ''} onClick={() => setTab('input')}>
-            {p.mode === 'replay' ? 'Player input' : 'Input'}
+            {p.mode === 'replay' ? tr('Player input') : tr('Input')}
           </button>
         )}
-        {p.mode === 'sql' && <button className={active === 'data' ? 'on' : ''} onClick={() => setTab('data')}>Sample data</button>}
-        <span className="output-status">{p.running ? <><span className="spinner" /> {p.status || 'Running...'}</> : p.status}</span>
+        {p.mode === 'sql' && <button className={active === 'data' ? 'on' : ''} onClick={() => setTab('data')}>{tr('Sample data')}</button>}
+        <span className="output-status">{p.running ? <><span className="spinner" /> {p.status || tr('Running...')}</> : p.status}</span>
       </div>
 
       <div className="output-body">
@@ -63,7 +65,7 @@ export default function OutputPanel(p: Props) {
           <iframe
             ref={p.iframeRef}
             key={p.previewDoc?.id ?? 0}
-            title="Preview"
+            title={tr('Preview')}
             className="preview"
             style={{ display: active === 'main' ? 'block' : 'none' }}
             sandbox="allow-scripts allow-modals allow-forms allow-popups"
@@ -76,21 +78,21 @@ export default function OutputPanel(p: Props) {
             {p.liveGame ? (
               <LiveGame key={p.liveGame.id} file={p.liveGame.file} onLog={p.onGameLog} onStatus={p.onGameStatus} />
             ) : (
-              <div className="empty">Press Run to start your game. Then click it and use the keyboard.</div>
+              <div className="empty">{tr('Press Run to start your game. Then click it and use the keyboard.')}</div>
             )}
           </div>
         )}
 
         {p.mode === 'replay' && active === 'main' && (
-          p.replay ? <ReplayPlayer frames={p.replay.frames} /> : <div className="empty">Press Run. Your program draws every frame, then the browser plays it back here.</div>
+          p.replay ? <ReplayPlayer frames={p.replay.frames} /> : <div className="empty">{tr('Press Run. Your program draws every frame, then the browser plays it back here.')}</div>
         )}
 
-        {hasConsoleTab && active === 'console' && <Console logs={p.logs} empty="Nothing printed yet." />}
+        {hasConsoleTab && active === 'console' && <Console logs={p.logs} empty={tr('Nothing printed yet.')} />}
 
         {!hasConsoleTab && active === 'main' && (
           <>
             {p.tables.map((t, i) => <ResultTable key={i} table={t} />)}
-            <Console logs={p.logs} empty={p.tables.length ? '' : 'Press Run (or Ctrl/Cmd + Enter) to see your output here.'} />
+            <Console logs={p.logs} empty={p.tables.length ? '' : tr('Press Run (or Ctrl/Cmd + Enter) to see your output here.')} />
           </>
         )}
 
@@ -98,10 +100,10 @@ export default function OutputPanel(p: Props) {
           <div className="stdin">
             <label htmlFor="stdin">
               {p.mode === 'replay'
-                ? 'The player\'s key presses. One line per event: <frame> <key> <down|up>. Keys: left right up down space a d w s z x enter. Lines starting with # are notes.'
-                : 'Program input (one line per input() / scanf / cin / ReadLine call)'}
+                ? tr("The player's key presses. One line per event: <frame> <key> <down|up>. Keys: left right up down space a d w s z x enter. Lines starting with # are notes.")
+                : tr('Program input (one line per input() / scanf / cin / ReadLine call)')}
             </label>
-            <textarea id="stdin" value={p.stdin} onChange={(e) => p.onStdinChange(e.target.value)} spellCheck={false} placeholder="Type the input your program should read..." />
+            <textarea id="stdin" value={p.stdin} onChange={(e) => p.onStdinChange(e.target.value)} spellCheck={false} placeholder={tr('Type the input your program should read...')} />
           </div>
         )}
         {active === 'data' && <pre className="seed">{p.seed ?? DEFAULT_SQL_SEED}</pre>}

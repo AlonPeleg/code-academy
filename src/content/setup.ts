@@ -368,6 +368,26 @@ export const SETUP: Record<string, SetupGuide> = {
       { name: "Thunder Client", id: "rangav.vscode-thunder-client", why: "a Postman-style request tester inside VS Code" },
     ],
   },
+  'node-backend': {
+    id: 'node-backend',
+    title: 'Node.js servers with Express (and tests)',
+    summary: 'Needs: Node.js and npm. Install express, run your server with node, and test with Jest or node:test.',
+    needs: ['Node.js LTS and npm (see the Node.js guide)', 'Packages: express (the web framework), and for tests jest (or use the built-in node:test runner)', 'A tool to send requests: your browser, curl, or the REST Client / Thunder Client extension'],
+    steps: [
+      { text: 'Create a project and install Express:', code: 'mkdir my-server\ncd my-server\nnpm init -y\nnpm install express' },
+      { text: 'Put your code in server.js, then start it. Open http://localhost:3000 in the browser:', code: 'node server.js' },
+      { text: 'Restart automatically when you save (Node 18.11 and newer):', code: 'node --watch server.js' },
+      { text: 'Keep secrets (passwords, API keys) in a .env file, never in your code, and list .env in .gitignore. Node 20.6 and newer can read it:', code: 'node --env-file=.env server.js' },
+      { text: 'Install Jest, add "test": "jest" under scripts in package.json, then run the tests (test files end in .test.js):', code: 'npm install --save-dev jest\nnpm test' },
+    ],
+    note: 'In the academy the practice server lives inside the page and you call it with fetch("http://localhost:3000/..."). On your computer the same code serves real requests, and the files you write with fs go to your real disk.',
+    link: { label: 'expressjs.com', url: 'https://expressjs.com' },
+    extensions: [
+      { name: "REST Client", id: "humao.rest-client", why: "send requests to your server from a .http file" },
+      { name: "Thunder Client", id: "rangav.vscode-thunder-client", why: "a Postman-style request tester inside VS Code" },
+      { name: "Jest Runner", id: "firsttris.vscode-jest-runner", why: "run or debug one test with a click" },
+    ],
+  },
   git: {
     id: 'git',
     title: 'Git and GitHub: keep it and publish it',
@@ -405,6 +425,9 @@ const BY_TRACK: Record<string, string[]> = {
   'machine-learning': ['python', 'python-data'],
   apis: ['node', 'api'],
   algorithms: ['python'],
+  'git-github': ['git'],
+  'node-backend': ['node', 'node-backend'],
+  'testing-debugging': ['node', 'python'],
   'project-todo-web': ['html', 'git'],
   'project-react-directory': ['node', 'react', 'git'],
   'project-api-client': ['node', 'api'],
@@ -424,6 +447,7 @@ const BY_TRACK: Record<string, string[]> = {
 const BY_PRESET: Record<string, string[]> = {
   web: ['html'], react: ['node', 'react'], 'react-tsx': ['node', 'react', 'typescript'], js: ['node'], api: ['node', 'api'], ts: ['node', 'typescript'],
   python: ['python'], ml: ['python', 'python-data'], sql: ['sql'], c: ['c'], cpp: ['cpp'], csharp: ['csharp'], java: ['java'], go: ['go'], rust: ['rust'],
+  git: ['git'], 'node-backend': ['node', 'node-backend'], tests: ['node'],
   pygame: ['python', 'pygame'], jsgame: ['html', 'games-js'], cgame: ['c', 'games-native'], cppgame: ['cpp', 'games-native'], csgame: ['csharp', 'games-native'],
 };
 

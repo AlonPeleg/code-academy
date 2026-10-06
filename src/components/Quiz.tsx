@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { QuizQuestion } from '../lib/types';
+import { useT } from '../lib/i18n';
 
 interface Props {
   questions: QuizQuestion[];
@@ -8,10 +9,11 @@ interface Props {
 }
 
 export default function Quiz({ questions, best, onScore }: Props) {
+  const tr = useT();
   const [picked, setPicked] = useState<(number | null)[]>(() => questions.map(() => null));
   const [submitted, setSubmitted] = useState(false);
 
-  if (!questions.length) return <p className="muted">No quiz for this lesson yet.</p>;
+  if (!questions.length) return <p className="muted">{tr('No quiz for this lesson yet.')}</p>;
 
   const score = picked.filter((p, i) => p === questions[i].answer).length;
   const allAnswered = picked.every((p) => p !== null);
@@ -27,7 +29,7 @@ export default function Quiz({ questions, best, onScore }: Props) {
 
   return (
     <div className="quiz">
-      {best && <p className="muted small">Best score so far: {best.best}/{best.total}</p>}
+      {best && <p className="muted small">{tr('Best score so far:')} {best.best}/{best.total}</p>}
       {questions.map((q, qi) => (
         <fieldset key={qi} className="question">
           <legend>
@@ -47,12 +49,12 @@ export default function Quiz({ questions, best, onScore }: Props) {
         </fieldset>
       ))}
       {!submitted ? (
-        <button className="btn primary" onClick={submit} disabled={!allAnswered}>Check answers</button>
+        <button className="btn primary" onClick={submit} disabled={!allAnswered}>{tr('Check answers')}</button>
       ) : (
         <div className="quiz-result">
-          <strong>You got {score} of {questions.length}.</strong>{' '}
-          {score === questions.length ? 'Perfect!' : 'Review the explanations above and try again.'}
-          <div><button className="btn ghost sm" onClick={retry}>Try again</button></div>
+          <strong>{tr('You got {score} of {total}.', { score, total: questions.length })}</strong>{' '}
+          {score === questions.length ? tr('Perfect!') : tr('Review the explanations above and try again.')}
+          <div><button className="btn ghost sm" onClick={retry}>{tr('Try again')}</button></div>
         </div>
       )}
     </div>

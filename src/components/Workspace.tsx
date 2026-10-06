@@ -5,6 +5,7 @@ import OutputPanel, { type OutputMode } from './OutputPanel';
 import { isIframeRunner, isLiveGame, isReplayGame, preloadRunner, runCode, stdoutOf, supportsStdin } from '../runners';
 import type { GameTest, LogLine, Probes, ReplayFrame, RunnerConfig, RunSummary, SourceFile, SqlTable } from '../runners/types';
 import { settingsStore } from '../lib/settings';
+import { useT } from '../lib/i18n';
 
 export interface WorkspaceHandle {
   /** Run the current code and resolve with what it printed / rendered */
@@ -38,6 +39,7 @@ const FILE_ICON: Record<string, string> = {
 const Workspace = forwardRef<WorkspaceHandle, Props>(function Workspace(props, ref) {
   const { scope, config, files, onFilesChange, stdin, onStdinChange, seed, probes, gameTest, layout, autoRun, toolbarExtra, banner, onReset } = props;
   const remote = settingsStore.use().remote;
+  const tr = useT();
   const isWeb = isIframeRunner(config.runner);
 
   const [active, setActive] = useState(files[0]?.name ?? '');
@@ -190,9 +192,9 @@ const Workspace = forwardRef<WorkspaceHandle, Props>(function Workspace(props, r
         </div>
         <div className="actions">
           {toolbarExtra}
-          {onReset && <button className="btn ghost sm" onClick={onReset} title="Reset to the starting code">Reset</button>}
+          {onReset && <button className="btn ghost sm" onClick={onReset} title={tr('Reset to the starting code')}>{tr('Reset')}</button>}
           <button className="btn primary sm" onClick={() => void run()} disabled={running} title="Ctrl/Cmd + Enter">
-            ▶ Run
+            ▶ {tr('Run')}
           </button>
         </div>
       </div>

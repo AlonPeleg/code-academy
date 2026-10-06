@@ -38,6 +38,9 @@ npm run preview    # try the build locally
 | CSS frameworks | Bootstrap and Tailwind CDN tags in your HTML are swapped for copies bundled with the academy, so they work offline in the preview (see `inlineLibraries` in `src/runners/webDoc.ts`) |
 | Multi-page sites | A web lesson can have several `.html` pages and folders (`css/style.css`). Links between the pages work in the preview, and `check.page` says which page a check looks at |
 | REST and SOAP lessons | A built-in practice server (`src/runners/apiMock.js`) answers `fetch('https://api.academy.test/...')` inside the JavaScript runner and the HTML/React previews. It works offline and resets on every run |
+| Node.js and Express | A practice Node inside the JavaScript runner (`src/runners/nodeShims.js`): `require` / `import` of `express`, `http`, `fs` (in-memory files), `path`, `events`, `crypto`, `assert`, `util`, `os`, `url`, plus `process` and `Buffer`. A server started with `app.listen(3000)` is called with `fetch('http://localhost:3000/...')` in the same program. Multi-file lessons work with `require('./routes/users')` |
+| Tests | `describe` / `it` / `expect` / `jest.fn` work in any JavaScript lesson (Jest-style output). Python lessons use `unittest` |
+| Git | A Git practice terminal (`src/runners/gitSim.ts`): write one command per line (`git init`, `add`, `commit`, `branch`, `merge`, `push` ...) and it prints what real Git prints, on a pretend repository. Fake but stable hashes. `teammate <file> <text>` pretends a teammate pushed a commit |
 | JavaScript games | Live: the program draws on an OffscreenCanvas in a worker with the `game` object (same engine as Python) |
 | Python games | Live: Pyodide in a worker draws to a canvas (`import game`), keyboard and mouse are forwarded |
 | C, C++, C# games | Replay: the program runs on the server with a scripted player, then the browser plays the recorded frames back |
@@ -46,11 +49,13 @@ npm run preview    # try the build locally
 
 Progress and your code are saved in the browser (`localStorage`).
 
-**Hints:** every lesson has a **Hint** button with three levels, from a gentle nudge to nearly the answer. The **Solution** button shows the full answer.
+**Hints:** every lesson has a **Hint** button with three levels, from a gentle nudge to nearly the answer. The **Solution** button slides the full answer over the lesson text on the left, so the editor stays free; **Load into editor** copies it across.
+
+**Hebrew:** Settings has a **Language** switch (English / עברית). It translates the whole interface (including the setup guides) and the lesson text, hints, quizzes and check messages of every beginner lesson; the layout flips to right-to-left, while code, file names and program output stay in English and left-to-right. Lessons that are not translated yet show in English with a small note. A translation is a file next to the English lesson: `src/content/<track>/NN-slug.he.md` (title, summary, hints, quiz, check messages and body). Interface strings live in `src/lib/he.ts`, track names in `src/content/tracks.he.ts` and setup guides in `src/content/setup.he.ts`. Check translations with `node scripts/validate-he.mjs [filter]`; `node scripts/validate-lessons.mjs` checks every English lesson before committing.
 
 ## What there is to learn
 
-Beginner to advanced lessons (each has a level label) in: HTML & CSS, CSS Frameworks (Bootstrap and Tailwind), JavaScript, TypeScript, React, Python, SQL, C, C++, C#, Java, Go and Rust. In the **Data, AI and APIs** section: Machine Learning (24 lessons, from NumPy and pandas to training a neural network by hand), REST & SOAP APIs and Algorithms & Data Structures. In **Guided projects**: a to-do app, a React people directory, an API client library, an expense tracker, a chatbot, a library database, a house price predictor, a multi-page portfolio website (Bootstrap) and a multi-file React dev blog. And **Make games** in Python, JavaScript, C, C++ and C#.
+Beginner to advanced lessons (each has a level label) in: HTML & CSS, CSS Frameworks (Bootstrap and Tailwind), JavaScript, TypeScript, React, Python, SQL, C, C++, C#, Java, Go and Rust. Plus **Git & GitHub**, **Node.js & Backend** (Express, REST, auth) and **Testing & Debugging** (try/catch, Jest-style tests, mocks, TDD, unittest). In the **Data, AI and APIs** section: Machine Learning (24 lessons, from NumPy and pandas to training a neural network by hand), REST & SOAP APIs and Algorithms & Data Structures. In **Guided projects**: a to-do app, a React people directory, an API client library, an expense tracker, a chatbot, a library database, a house price predictor, a multi-page portfolio website (Bootstrap) and a multi-file React dev blog. And **Make games** in Python, JavaScript, C, C++ and C#.
 
 ## Game lessons
 
@@ -135,7 +140,8 @@ src/
     html-css/01-first-page.md
     python/03-conditions-and-loops.md
     ...
-  runners/            code execution engines (web, js/ts worker, react, python, sql, remote)
+  runners/            code execution engines (web, js/ts worker + node shims, react, python, sql, git, remote)
+  lib/i18n.ts, he.ts  language switch and the Hebrew interface dictionary
   monaco/             editor setup + IntelliSense
   components/         Workspace (editor + output), Quiz, lesson renderer
   pages/              Home, Track, Lesson, Sandbox, Settings
@@ -207,4 +213,5 @@ Add a preset to `src/sandbox/presets.ts`. For a new compiled language also add i
 - `input()` and friends read from the Input tab rather than prompting interactively.
 - The data-science packages need internet the first time (they come from the Pyodide CDN). Everything else works offline except the compiled languages.
 - Tailwind in the browser is a learning build (it generates styles in the page). Computed Tailwind colours are `oklch(...)` values, so lessons check sizes and class names instead.
+- The Node practice environment and the Git terminal are simulations: files exist only in memory, there is no real network, database or Git. The lessons work the same way on a real computer (see the Setup button).
 - The practice API server is a simulation inside the page, not the real internet. To practise against real services, use a real URL in the sandbox (the target must allow cross-origin requests).

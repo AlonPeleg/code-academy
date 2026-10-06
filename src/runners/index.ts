@@ -27,6 +27,8 @@ export async function runCode(cfg: RunnerConfig, files: SourceFile[], ctx: RunCo
     }
     case 'sql':
       return (await import('./sql')).runSql(files, ctx);
+    case 'git':
+      return (await import('./git')).runGit(files);
     case 'remote':
       return (await import('./remote')).runRemote(files, { ...ctx, langKey: cfg.remoteLang ?? 'c', game: cfg.game });
   }

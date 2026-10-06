@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { DEFAULT_REMOTE, settingsStore } from '../lib/settings';
+import { setLang, useLang, useT } from '../lib/i18n';
 import { resetAllProgress } from '../lib/progress';
 import { runRemote } from '../runners/remote';
 import type { LogLine, RemoteSettings } from '../runners/types';
@@ -8,6 +9,8 @@ const HELLO_C = '#include <stdio.h>\nint main(void){ printf("Hello from the run 
 
 export default function SettingsPage() {
   const remote = settingsStore.use().remote;
+  const tr = useT();
+  const lang = useLang();
   const [testing, setTesting] = useState(false);
   const [testLogs, setTestLogs] = useState<LogLine[] | null>(null);
   const [confirmReset, setConfirmReset] = useState(false);
@@ -24,37 +27,45 @@ export default function SettingsPage() {
 
   return (
     <div className="page narrow">
-      <h1>Settings</h1>
+      <h1>{tr('Settings')}</h1>
 
       <section className="panel">
-        <h2>Run server for C, C++, C#, Java, Go and Rust</h2>
+        <h2>{tr('Language')}</h2>
+        <p className="muted">{tr('Choose the language of the website and of the lesson explanations. Code, file names and program output always stay in English. Lessons that are not translated yet are shown in English.')}</p>
+        <div className="presets-row" role="radiogroup" aria-label={tr('Language')}>
+          <button className={'btn sm ' + (lang === 'en' ? 'primary' : 'ghost')} role="radio" aria-checked={lang === 'en'} onClick={() => setLang('en')}>English</button>
+          <button className={'btn sm ' + (lang === 'he' ? 'primary' : 'ghost')} role="radio" aria-checked={lang === 'he'} onClick={() => setLang('he')}>עברית (Hebrew)</button>
+        </div>
+      </section>
+
+      <section className="panel">
+        <h2>{tr('Run server for C, C++, C#, Java, Go and Rust')}</h2>
         <p className="muted">
-          HTML, CSS, JavaScript, TypeScript, React, Python and SQL run entirely inside your browser. Compiled languages need a real compiler, so their code is sent to a
-          code-execution server. By default this uses the free public Judge0 server, which can be slow or rate-limited. For reliable use, run your own (see the README).
+          {tr('HTML, CSS, JavaScript, TypeScript, React, Python and SQL run entirely inside your browser. Compiled languages need a real compiler, so their code is sent to a code-execution server. By default this uses the free public Judge0 server, which can be slow or rate-limited. For reliable use, run your own (see the README).')}
         </p>
         <div className="presets-row">
-          <button className="btn ghost sm" onClick={() => update(DEFAULT_REMOTE)}>Public Judge0 (default)</button>
-          <button className="btn ghost sm" onClick={() => update({ provider: 'judge0', baseUrl: 'http://localhost:2358' })}>My Judge0 (localhost:2358)</button>
-          <button className="btn ghost sm" onClick={() => update({ provider: 'piston', baseUrl: 'http://localhost:2000/api/v2' })}>My Piston (localhost:2000)</button>
+          <button className="btn ghost sm" onClick={() => update(DEFAULT_REMOTE)}>{tr('Public Judge0 (default)')}</button>
+          <button className="btn ghost sm" onClick={() => update({ provider: 'judge0', baseUrl: 'http://localhost:2358' })}>{tr('My Judge0 (localhost:2358)')}</button>
+          <button className="btn ghost sm" onClick={() => update({ provider: 'piston', baseUrl: 'http://localhost:2000/api/v2' })}>{tr('My Piston (localhost:2000)')}</button>
         </div>
         <div className="form">
-          <label>Server type
+          <label>{tr('Server type')}
             <select value={remote.provider} onChange={(e) => update({ provider: e.target.value as RemoteSettings['provider'] })}>
               <option value="judge0">Judge0</option>
               <option value="piston">Piston</option>
             </select>
           </label>
-          <label>Server URL
+          <label>{tr('Server URL')}
             <input value={remote.baseUrl} onChange={(e) => update({ baseUrl: e.target.value })} spellCheck={false} />
           </label>
-          <label>Extra header name (optional)
+          <label>{tr('Extra header name (optional)')}
             <input value={remote.headerName} placeholder="X-Auth-Token" onChange={(e) => update({ headerName: e.target.value })} spellCheck={false} />
           </label>
-          <label>Extra header value (optional)
+          <label>{tr('Extra header value (optional)')}
             <input value={remote.headerValue} type="password" onChange={(e) => update({ headerValue: e.target.value })} spellCheck={false} />
           </label>
         </div>
-        <button className="btn primary sm" onClick={() => void test()} disabled={testing}>{testing ? 'Testing...' : 'Test connection'}</button>
+        <button className="btn primary sm" onClick={() => void test()} disabled={testing}>{testing ? tr('Testing...') : tr('Test connection')}</button>
         {testLogs && (
           <div className="console" style={{ marginTop: 12 }}>
             {testLogs.map((l, i) => <div key={i} className={'line ' + l.level}><span className="txt">{l.text}</span></div>)}
@@ -63,15 +74,15 @@ export default function SettingsPage() {
       </section>
 
       <section className="panel">
-        <h2>Your progress</h2>
-        <p className="muted">Progress and your code are saved in this browser only.</p>
+        <h2>{tr('Your progress')}</h2>
+        <p className="muted">{tr('Progress and your code are saved in this browser only.')}</p>
         {!confirmReset ? (
-          <button className="btn ghost sm" onClick={() => setConfirmReset(true)}>Reset all progress...</button>
+          <button className="btn ghost sm" onClick={() => setConfirmReset(true)}>{tr('Reset all progress...')}</button>
         ) : (
           <div className="presets-row">
-            <span>Delete all progress and saved code?</span>
-            <button className="btn danger sm" onClick={() => { resetAllProgress(); setConfirmReset(false); }}>Yes, delete</button>
-            <button className="btn ghost sm" onClick={() => setConfirmReset(false)}>Cancel</button>
+            <span>{tr('Delete all progress and saved code?')}</span>
+            <button className="btn danger sm" onClick={() => { resetAllProgress(); setConfirmReset(false); }}>{tr('Yes, delete')}</button>
+            <button className="btn ghost sm" onClick={() => setConfirmReset(false)}>{tr('Cancel')}</button>
           </div>
         )}
       </section>

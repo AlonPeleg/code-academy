@@ -1,4 +1,4 @@
-export type RunnerId = 'web' | 'js' | 'ts' | 'react' | 'python' | 'pygame' | 'jsgame' | 'sql' | 'remote';
+export type RunnerId = 'web' | 'js' | 'ts' | 'react' | 'python' | 'pygame' | 'jsgame' | 'sql' | 'git' | 'remote';
 
 export interface SourceFile {
   name: string;

@@ -1,5 +1,6 @@
 import type { Probes, RunSummary, SourceFile } from '../runners/types';
 import type { Lesson } from './types';
+import type { TFn } from './i18n';
 
 export interface CheckResult {
   passed: boolean;
@@ -27,7 +28,9 @@ export function buildProbes(lesson: Lesson): Probes {
   };
 }
 
-export function evaluateCheck(lesson: Lesson, files: SourceFile[], summary: RunSummary): CheckResult {
+const plain: TFn = (en, vars) => (vars ? en.replace(/\{(\w+)\}/g, (_, k: string) => String(vars[k] ?? '')) : en);
+
+export function evaluateCheck(lesson: Lesson, files: SourceFile[], summary: RunSummary, tr: TFn = plain): CheckResult {
   const check = lesson.check;
   if (!check) return { passed: true, messages: [] };
   const messages: string[] = [];
@@ -35,13 +38,13 @@ export function evaluateCheck(lesson: Lesson, files: SourceFile[], summary: RunS
   let actual: string | undefined;
 
   if (!summary.ok) {
-    return { passed: false, messages: ['Your code has an error, so it could not finish. Read the red message in the output, fix it, then check again.'] };
+    return { passed: false, messages: [tr('Your code has an error, so it could not finish. Read the red message in the output, fix it, then check again.')] };
   }
 
   if (check.output !== undefined) {
     expected = norm(check.output);
     actual = norm(summary.stdout);
-    if (expected !== actual) messages.push('The output is not what we expected yet.');
+    if (expected !== actual) messages.push(tr('The output is not what we expected yet.'));
   }
 
   for (const rule of check.code ?? []) {
@@ -54,25 +57,25 @@ export function evaluateCheck(lesson: Lesson, files: SourceFile[], summary: RunS
     } catch {
       ok = false;
     }
-    if (!ok) messages.push(spec.message ?? `Your code should contain something like: ${spec.pattern}`);
+    if (!ok) messages.push(spec.message ?? tr('Your code should contain something like: {pattern}', { pattern: spec.pattern }));
   }
 
   if (check.game) {
-    if (!summary.game?.passed) messages.push(check.game.message ?? summary.game?.detail ?? 'The game did not behave as expected yet.');
+    if (!summary.game?.passed) messages.push(check.game.message ?? summary.game?.detail ?? tr('The game did not behave as expected yet.'));
   }
 
   const dom = check.dom;
   if (dom) {
     const report = summary.dom;
     if (!report) {
-      messages.push('The preview did not finish loading. Try running again.');
+      messages.push(tr('The preview did not finish loading. Try running again.'));
     } else {
-      for (const t of dom.text ?? []) if (!report.text.includes(t)) messages.push(`The page should show the text "${t}".`);
-      for (const sel of dom.selectors ?? []) if (!report.selectors[sel]) messages.push(`The page should contain an element matching "${sel}".`);
+      for (const t of dom.text ?? []) if (!report.text.includes(t)) messages.push(tr('The page should show the text "{text}".', { text: t }));
+      for (const sel of dom.selectors ?? []) if (!report.selectors[sel]) messages.push(tr('The page should contain an element matching "{selector}".', { selector: sel }));
       for (const s of dom.styles ?? []) {
         const got = report.styles[`${s.selector}|${s.property}`] ?? '';
-        if (s.value !== undefined && got !== s.value) messages.push(`${s.selector} should have ${s.property}: ${s.value} (it is currently ${got || 'not set'}).`);
-        if (s.not !== undefined && got === s.not) messages.push(`${s.selector} still has the default ${s.property}. Change it.`);
+        if (s.value !== undefined && got !== s.value) messages.push(tr('{selector} should have {property}: {value} (it is currently {current}).', { selector: s.selector, property: s.property, value: s.value, current: got || tr('not set') }));
+        if (s.not !== undefined && got === s.not) messages.push(tr('{selector} still has the default {property}. Change it.', { selector: s.selector, property: s.property }));
       }
     }
   }

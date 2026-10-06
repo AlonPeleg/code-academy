@@ -1,3 +1,4 @@
+import { useT } from '../lib/i18n';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { LogLine, ReplayFrame, SourceFile } from '../runners/types';
 import type { GameHandle } from '../runners/python';
@@ -46,6 +47,7 @@ function drawCommands(ctx: CanvasRenderingContext2D, frame: ReplayFrame) {
 
 /** Plays back the frames a compiled program drew. Frames can be scrubbed like a video. */
 export function ReplayPlayer({ frames }: { frames: ReplayFrame[] }) {
+  const tr = useT();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [frame, setFrame] = useState(0);
   const [playing, setPlaying] = useState(true);
@@ -81,23 +83,23 @@ export function ReplayPlayer({ frames }: { frames: ReplayFrame[] }) {
     for (let i = start; i <= frame && i < frames.length; i++) drawCommands(ctx, frames[i]);
   }, [frame, frames]);
 
-  if (!frames.length) return <div className="empty">Run your program to record and play the game.</div>;
+  if (!frames.length) return <div className="empty">{tr('Run your program to record and play the game.')}</div>;
 
   return (
     <div className="game-wrap">
       <canvas ref={canvasRef} width={W} height={H} className="game-canvas" />
       <div className="game-controls">
-        <button className="btn ghost sm" onClick={() => { setFrame(0); setPlaying(true); }} title="Replay from the start">⟲</button>
+        <button className="btn ghost sm" onClick={() => { setFrame(0); setPlaying(true); }} title={tr('Replay from the start')}>⟲</button>
         <button className="btn ghost sm" onClick={() => setPlaying((p) => (frame + 1 >= frames.length ? (setFrame(0), true) : !p))}>
-          {playing ? '⏸ Pause' : '▶ Play'}
+          {playing ? '⏸ ' + tr('Pause') : '▶ ' + tr('Play')}
         </button>
         <input
           type="range" min={0} max={frames.length - 1} value={frame}
           onChange={(e) => { setPlaying(false); setFrame(Number(e.target.value)); }}
-          aria-label="Frame"
+          aria-label={tr('Frame')}
         />
-        <span className="muted small frame-count">frame {frame}/{frames.length - 1}</span>
-        <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} aria-label="Speed">
+        <span className="muted small frame-count">{tr('frame')} {frame}/{frames.length - 1}</span>
+        <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} aria-label={tr('Speed')}>
           <option value={0.25}>0.25x</option>
           <option value={0.5}>0.5x</option>
           <option value={1}>1x</option>
@@ -128,6 +130,7 @@ interface LiveProps {
 
 /** Runs a Python game on a canvas and forwards the keyboard and mouse to it. Remount (new key) to restart. */
 export function LiveGame({ file, onLog, onStatus }: LiveProps) {
+  const tr = useT();
   const wrapRef = useRef<HTMLDivElement>(null);
   const handleRef = useRef<GameHandle | null>(null);
   const [state, setState] = useState<'starting' | 'running' | 'stopped' | 'frozen'>('starting');
@@ -232,17 +235,17 @@ export function LiveGame({ file, onLog, onStatus }: LiveProps) {
     >
       <div className="game-controls">
         <span className="muted small">
-          {state === 'starting' && 'Starting...'}
-          {state === 'running' && (focused ? 'Playing - keyboard is captured' : 'Click the game to use the keyboard')}
-          {state === 'stopped' && 'Stopped'}
-          {state === 'frozen' && 'Frozen - press Run to restart'}
+          {state === 'starting' && tr('Starting...')}
+          {state === 'running' && (focused ? tr('Playing - keyboard is captured') : tr('Click the game to use the keyboard'))}
+          {state === 'stopped' && tr('Stopped')}
+          {state === 'frozen' && tr('Frozen - press Run to restart')}
         </span>
         {state === 'running' && (
           <button
             className="btn ghost sm"
             onClick={() => { handleRef.current?.stop(); setState('stopped'); }}
           >
-            ■ Stop
+            ■ {tr('Stop')}
           </button>
         )}
       </div>

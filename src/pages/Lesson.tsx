@@ -6,7 +6,8 @@ import LessonContent from '../components/LessonContent';
 import Quiz from '../components/Quiz';
 import SetupHelp from '../components/SetupHelp';
 import { setupForLesson } from '../content/setup';
-import { getLesson, getTrack, neighbours } from '../lib/lessons';
+import { getLesson, getTrack, localizeLesson, localizeTrack, neighbours } from '../lib/lessons';
+import { useLang, useT } from '../lib/i18n';
 import { buildProbes, evaluateCheck, hasCheck, type CheckResult } from '../lib/check';
 import { progressStore, updateLesson } from '../lib/progress';
 import { useMedia } from '../lib/useMedia';
@@ -15,20 +16,23 @@ import type { SourceFile } from '../runners/types';
 
 export default function LessonPage() {
   const { track, slug } = useParams();
-  const lesson = getLesson(track ?? '', slug ?? '');
-  if (!lesson) {
+  const base = getLesson(track ?? '', slug ?? '');
+  const lang = useLang();
+  const tr = useT();
+  if (!base) {
     return (
       <div className="page">
-        <h1>Lesson not found</h1>
-        <Link to="/">Back home</Link>
+        <h1>{tr('Lesson not found')}</h1>
+        <Link to="/">{tr('Back home')}</Link>
       </div>
     );
   }
-  return <LessonView key={lesson.id} lesson={lesson} />;
+  return <LessonView key={base.id} lesson={localizeLesson(base, lang)} lang={lang} />;
 }
 
-function LessonView({ lesson }: { lesson: Lesson }) {
-  const t = getTrack(lesson.trackId);
+function LessonView({ lesson, lang }: { lesson: Lesson; lang: 'en' | 'he' }) {
+  const tr = useT();
+  const t = (() => { const x = getTrack(lesson.trackId); return x ? localizeTrack(x, lang) : x; })();
   const progress = progressStore.use();
   const lp = progress.lessons[lesson.id];
   const wide = useMedia('(min-width: 980px)');
@@ -43,6 +47,7 @@ function LessonView({ lesson }: { lesson: Lesson }) {
   const [checking, setChecking] = useState(false);
   const ws = useRef<WorkspaceHandle>(null);
   const checkable = hasCheck(lesson);
+  const hasHe = !!getLesson(lesson.trackId, lesson.slug)?.he;
 
   // keep the learner's code between visits
   useEffect(() => {
@@ -54,7 +59,7 @@ function LessonView({ lesson }: { lesson: Lesson }) {
     if (!ws.current) return;
     setChecking(true);
     const summary = await ws.current.run({ headless: lesson.runner === 'pygame' || lesson.runner === 'jsgame', page: lesson.runner === 'web' ? lesson.check?.page ?? 'index.html' : undefined });
-    const res = evaluateCheck(lesson, files, summary);
+    const res = evaluateCheck(lesson, files, summary, tr);
     setResult(res);
     if (res.passed) updateLesson(lesson.id, { done: true });
     setChecking(false);
@@ -79,21 +84,21 @@ function LessonView({ lesson }: { lesson: Lesson }) {
         <div className={'banner ' + (result.passed ? 'ok' : 'bad')}>
           {result.passed ? (
             <>
-              <strong>Correct, nice work! 🎉</strong>
-              {lesson.export && <p className="muted small">That was the last step. Use <strong>Download project</strong> to get the whole thing as a folder with a README, ready for GitHub.</p>}
+              <strong>{tr('Correct, nice work! 🎉')}</strong>
+              {lesson.export && <p className="muted small">{tr('That was the last step. Use "Download project" to get the whole thing as a folder with a README, ready for GitHub.')}</p>}
               <div className="banner-actions">
-                {next ? <Link className="btn primary sm" to={`/learn/${next.trackId}/${next.slug}`}>Next lesson →</Link> : <Link className="btn primary sm" to="/">All done - pick another track</Link>}
-                <button className="btn ghost sm" onClick={() => setTab('quiz')}>Take the quiz</button>
+                {next ? <Link className="btn primary sm" to={`/learn/${next.trackId}/${next.slug}`}>{tr('Next lesson →')}</Link> : <Link className="btn primary sm" to="/">{tr('All done - pick another track')}</Link>}
+                <button className="btn ghost sm" onClick={() => setTab('quiz')}>{tr('Take the quiz')}</button>
               </div>
             </>
           ) : (
             <>
-              <strong>Not quite yet.</strong>
+              <strong>{tr('Not quite yet.')}</strong>
               <ul>{result.messages.map((m, i) => <li key={i}>{m}</li>)}</ul>
               {result.expected !== undefined && (
                 <div className="diff">
-                  <div><span className="muted small">Expected</span><pre>{result.expected}</pre></div>
-                  <div><span className="muted small">Yours</span><pre>{result.actual || '(nothing printed)'}</pre></div>
+                  <div><span className="muted small">{tr('Expected')}</span><pre>{result.expected}</pre></div>
+                  <div><span className="muted small">{tr('Yours')}</span><pre>{result.actual || tr('(nothing printed)')}</pre></div>
                 </div>
               )}
             </>
@@ -103,26 +108,11 @@ function LessonView({ lesson }: { lesson: Lesson }) {
       {hintLevel > 0 && lesson.hints.length > 0 && (
         <div className="banner hint">
           {lesson.hints.slice(0, hintLevel).map((h, i) => (
-            <p key={i} className="hint-line"><strong>Hint {i + 1}{lesson.hints.length > 1 ? ` of ${lesson.hints.length}` : ''}:</strong> {h}</p>
+            <p key={i} className="hint-line"><strong>{lesson.hints.length > 1 ? tr('Hint {n} of {total}:', { n: i + 1, total: lesson.hints.length }) : tr('Hint {n}:', { n: i + 1 })}</strong> {h}</p>
           ))}
           {hintLevel >= lesson.hints.length && lesson.solution && (
-            <p className="muted small">Still stuck? Press <strong>Solution</strong> to see the full answer, then try to understand each line.</p>
+            <p className="muted small">{tr('Still stuck? Press "Solution" to see the full answer, then try to understand each line.')}</p>
           )}
-        </div>
-      )}
-      {showSolution && lesson.solution && (
-        <div className="banner solution">
-          <div className="banner-actions">
-            <strong>Solution</strong>
-            <button className="btn ghost sm" onClick={() => { setFiles(lesson.solution!.map((f) => ({ ...f }))); setShowSolution(false); }}>Load into editor</button>
-            <button className="btn ghost sm" onClick={() => setShowSolution(false)}>Hide</button>
-          </div>
-          {lesson.solution.map((f) => (
-            <div key={f.name}>
-              {lesson.solution!.length > 1 && <div className="muted small">{f.name}</div>}
-              <pre>{f.code}</pre>
-            </div>
-          ))}
         </div>
       )}
     </>
@@ -134,15 +124,15 @@ function LessonView({ lesson }: { lesson: Lesson }) {
         <button
           className="btn hintbtn sm"
           onClick={() => setHintLevel((l) => (l >= lesson.hints.length ? 0 : l + 1))}
-          title="Reveal one hint at a time. Click again for a bigger hint."
+          title={tr('Reveal one hint at a time. Click again for a bigger hint.')}
         >
-          💡 {hintLevel === 0 ? 'Hint' : hintLevel >= lesson.hints.length ? 'Hide hints' : `Next hint (${hintLevel}/${lesson.hints.length})`}
+          💡 {hintLevel === 0 ? tr('Hint') : hintLevel >= lesson.hints.length ? tr('Hide hints') : tr('Next hint ({n}/{total})', { n: hintLevel, total: lesson.hints.length })}
         </button>
       )}
       <SetupHelp guides={setupForLesson(lesson.trackId, lesson.slug)} />
-      {lesson.solution && <button className="btn ghost sm" onClick={() => setShowSolution((v) => !v)}>Solution</button>}
-      {lesson.export && <button className="btn primary sm" onClick={() => void download()} title="Download this project as a folder you can run, publish and show in a portfolio">⬇ Download project</button>}
-      {checkable && <button className="btn accent sm" onClick={() => void onCheck()} disabled={checking}>✓ Check answer</button>}
+      {lesson.solution && <button className="btn ghost sm" onClick={() => setShowSolution((v) => !v)} aria-pressed={showSolution}>{tr('Solution')}</button>}
+      {lesson.export && <button className="btn primary sm" onClick={() => void download()} title={tr('Download this project as a folder you can run, publish and show in a portfolio')}>⬇ {tr('Download project')}</button>}
+      {checkable && <button className="btn accent sm" onClick={() => void onCheck()} disabled={checking}>✓ {tr('Check answer')}</button>}
     </>
   );
 
@@ -170,22 +160,23 @@ function LessonView({ lesson }: { lesson: Lesson }) {
     <div className="lesson-pane" style={{ ['--accent' as string]: t?.color }}>
       <div className="lesson-top">
         <Link to={`/learn/${lesson.trackId}`} className="back">← {t?.title}</Link>
-        <span className="muted small">{t?.group === 'projects' ? 'Step' : 'Lesson'} {index + 1} of {total}</span>
+        <span className="muted small">{t?.group === 'projects' ? tr('Step {n} of {total}', { n: index + 1, total }) : tr('Lesson {n} of {total}', { n: index + 1, total })}</span>
       </div>
       <div className="tabs">
-        <button className={tab === 'lesson' ? 'on' : ''} onClick={() => setTab('lesson')}>Lesson</button>
+        <button className={tab === 'lesson' ? 'on' : ''} onClick={() => setTab('lesson')}>{tr('Lesson')}</button>
         <button className={tab === 'quiz' ? 'on' : ''} onClick={() => setTab('quiz')}>
-          Quiz{lp?.quiz ? ` (${lp.quiz.best}/${lp.quiz.total})` : ''}
+          {tr('Quiz')}{lp?.quiz ? ` (${lp.quiz.best}/${lp.quiz.total})` : ''}
         </button>
       </div>
+      {lang === 'he' && !hasHe && <p className="banner tr-note">{tr('This lesson is not translated to Hebrew yet, so it is shown in English.')}</p>}
       <div className="lesson-scroll">
         {tab === 'lesson' ? (
           <>
-            <h1>{lesson.title}{lesson.level && <span className={'level ' + lesson.level}>{lesson.level}</span>}</h1>
+            <h1>{lesson.title}{lesson.level && <span className={'level ' + lesson.level}>{tr(lesson.level)}</span>}</h1>
             <LessonContent body={lesson.body} />
             {!checkable && (
               <button className={'btn sm ' + (lp?.done ? 'ghost' : 'primary')} onClick={() => updateLesson(lesson.id, { done: !lp?.done })}>
-                {lp?.done ? '✓ Completed (click to undo)' : 'Mark lesson as complete'}
+                {lp?.done ? tr('✓ Completed (click to undo)') : tr('Mark lesson as complete')}
               </button>
             )}
           </>
@@ -195,9 +186,28 @@ function LessonView({ lesson }: { lesson: Lesson }) {
           }} />
         )}
       </div>
+      {showSolution && lesson.solution && (
+        <div className="solution-overlay" role="region" aria-label={tr('Solution')}>
+          <div className="solution-head">
+            <strong>{tr('Solution')}</strong>
+            <span className="grow" />
+            <button className="btn ghost sm" onClick={() => { setFiles(lesson.solution!.map((f) => ({ ...f }))); setShowSolution(false); setResult(null); }}>{tr('Load into editor')}</button>
+            <button className="btn ghost sm" onClick={() => setShowSolution(false)}>{tr('Hide')}</button>
+          </div>
+          <div className="solution-body">
+            <p className="muted small">{tr('Try to understand every line before you copy it.')}</p>
+            {lesson.solution.map((f) => (
+              <div key={f.name} className="solution-file">
+                <div className="muted small solution-name">{f.name}</div>
+                <LessonContent body={'```' + (f.language === 'plaintext' ? '' : f.language) + '\n' + f.code + '\n```'} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="lesson-nav">
-        {prev ? <Link className="btn ghost sm" to={`/learn/${prev.trackId}/${prev.slug}`}>← Previous</Link> : <span />}
-        {next ? <Link className="btn ghost sm" to={`/learn/${next.trackId}/${next.slug}`}>Next →</Link> : <span />}
+        {prev ? <Link className="btn ghost sm" to={`/learn/${prev.trackId}/${prev.slug}`}>{tr('← Previous')}</Link> : <span />}
+        {next ? <Link className="btn ghost sm" to={`/learn/${next.trackId}/${next.slug}`}>{tr('Next →')}</Link> : <span />}
       </div>
     </div>
   );

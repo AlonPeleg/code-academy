@@ -104,6 +104,63 @@ declare const game: {
 };
 `;
 ts.javascriptDefaults.addExtraLib(GAME_TYPES, 'file:///academy-game.d.ts');
+const NODE_TYPES = `
+declare function require(name: string): any;
+declare const module: { exports: any };
+declare const exports: any;
+declare const __dirname: string;
+declare const __filename: string;
+declare const process: { argv: string[]; env: Record<string, string | undefined>; exit(code?: number): never; cwd(): string; platform: string; uptime(): number; hrtime: { bigint(): bigint }; nextTick(fn: (...args: any[]) => void, ...args: any[]): void; stdout: { write(text: string): boolean }; memoryUsage(): Record<string, number> };
+declare const Buffer: { from(data: string | number[], encoding?: string): any; alloc(size: number): any; isBuffer(x: unknown): boolean; concat(list: any[]): any };
+/** Jest-style tests: group tests with describe, write each one with it or test, check values with expect. */
+declare function describe(name: string, fn: () => void): void;
+declare function it(name: string, fn: () => unknown): void;
+declare function test(name: string, fn: () => unknown): void;
+declare function beforeEach(fn: () => unknown): void;
+declare function afterEach(fn: () => unknown): void;
+declare function beforeAll(fn: () => unknown): void;
+declare function afterAll(fn: () => unknown): void;
+interface Matchers {
+  not: Matchers;
+  resolves: Matchers;
+  rejects: Matchers;
+  toBe(expected: unknown): void;
+  toEqual(expected: unknown): void;
+  toStrictEqual(expected: unknown): void;
+  toBeTruthy(): void;
+  toBeFalsy(): void;
+  toBeNull(): void;
+  toBeUndefined(): void;
+  toBeDefined(): void;
+  toBeNaN(): void;
+  toBeGreaterThan(n: number): void;
+  toBeGreaterThanOrEqual(n: number): void;
+  toBeLessThan(n: number): void;
+  toBeLessThanOrEqual(n: number): void;
+  toBeCloseTo(n: number, digits?: number): void;
+  toContain(item: unknown): void;
+  toContainEqual(item: unknown): void;
+  toHaveLength(n: number): void;
+  toHaveProperty(path: string, value?: unknown): void;
+  toMatch(pattern: string | RegExp): void;
+  toMatchObject(obj: object): void;
+  toThrow(expected?: string | RegExp | Error): void;
+  toBeInstanceOf(cls: Function): void;
+  toHaveBeenCalled(): void;
+  toHaveBeenCalledTimes(n: number): void;
+  toHaveBeenCalledWith(...args: unknown[]): void;
+  toHaveBeenLastCalledWith(...args: unknown[]): void;
+  toHaveReturnedWith(value: unknown): void;
+}
+declare function expect(actual: unknown): Matchers;
+declare const jest: {
+  fn(impl?: (...args: any[]) => any): any;
+  spyOn(obj: object, method: string): any;
+  clearAllMocks(): void;
+  restoreAllMocks(): void;
+};
+`;
+ts.javascriptDefaults.addExtraLib(NODE_TYPES, 'file:///academy-node.d.ts');
 ts.typescriptDefaults.addExtraLib(REACT_TYPES, 'file:///node_modules/@types/react/index.d.ts');
 ts.javascriptDefaults.addExtraLib(REACT_TYPES, 'file:///node_modules/@types/react/index.d.ts');
 

@@ -105,7 +105,7 @@ button { font: inherit; cursor: pointer; }
 
 /* ---------- lesson layout ---------- */
 .lesson-split, .sandbox { height: calc(100dvh - var(--header-h)); }
-.lesson-pane { display: flex; flex-direction: column; height: 100%; background: var(--panel); min-width: 0; }
+.lesson-pane { display: flex; flex-direction: column; height: 100%; background: var(--panel); min-width: 0; position: relative; }
 .lesson-top { display: flex; justify-content: space-between; align-items: center; padding: 12px 18px 0; }
 .lesson-top .back { margin: 0; }
 .tabs { display: flex; gap: 4px; padding: 10px 14px 0; border-bottom: 1px solid var(--border); }
@@ -272,3 +272,25 @@ table.result td.null { color: var(--muted); font-style: italic; }
 .setup-card .setup-guide { border-top: none; margin-top: 4px; padding-top: 0; }
 
 .header nav a.gh-link { display: inline-flex; align-items: center; padding: 6px 8px; margin-right: 4px; }
+
+/* Solution: covers the lesson text on the left, so the editor and output stay free */
+.solution-overlay { position: absolute; inset: 0; z-index: 20; display: flex; flex-direction: column; background: var(--panel); border-right: 2px solid var(--accent, var(--primary)); }
+.solution-head { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-bottom: 1px solid var(--border); background: var(--panel-2); }
+.solution-head .grow { flex: 1; }
+.solution-body { flex: 1; overflow: auto; padding: 14px 18px 24px; direction: ltr; text-align: left; }
+.solution-file { margin: 10px 0 16px; }
+.solution-name { margin-bottom: 4px; font-family: ui-monospace, monospace; }
+.solution-body .prose pre { margin: 0; }
+.lesson-stacked .solution-overlay { position: fixed; top: var(--header-h); left: 0; right: 0; bottom: 0; }
+.tr-note { margin: 0; font-size: 13px; background: rgba(245, 158, 11, .12); }
+
+/* Hebrew (right-to-left): text flows right to left, but code and the editor/output layout stay left to right */
+html[dir='rtl'] .lesson-split, html[dir='rtl'] .workspace, html[dir='rtl'] .workspace-stack, html[dir='rtl'] .sandbox-body { direction: ltr; }
+html[dir='rtl'] .lesson-pane, html[dir='rtl'] .banner, html[dir='rtl'] .output .empty, html[dir='rtl'] .stdin label, html[dir='rtl'] .setup-pop, html[dir='rtl'] .sandbox-bar { direction: rtl; text-align: start; }
+html[dir='rtl'] pre, html[dir='rtl'] code, html[dir='rtl'] .console, html[dir='rtl'] .monaco-editor, html[dir='rtl'] textarea, html[dir='rtl'] .diff pre, html[dir='rtl'] .filetabs, html[dir='rtl'] .output-body iframe { direction: ltr; text-align: left; unicode-bidi: isolate; }
+html[dir='rtl'] .prose blockquote { border-left: 0; border-right: 3px solid var(--accent, var(--primary)); border-radius: 8px 0 0 8px; }
+html[dir='rtl'] .prose ul, html[dir='rtl'] .prose ol, html[dir='rtl'] .banner ul, html[dir='rtl'] .setup-guide ul, html[dir='rtl'] .setup-guide ol { padding-left: 0; padding-right: 22px; }
+html[dir='rtl'] .prose td, html[dir='rtl'] .prose th { text-align: start; }
+html[dir='rtl'] .prose table { direction: rtl; }
+html[dir='rtl'] .lesson-nav { direction: rtl; }
+html[dir='rtl'] .level { margin-left: 0; margin-right: 10px; }

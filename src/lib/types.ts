@@ -43,6 +43,18 @@ export interface ProjectExport {
   note?: string;
 }
 
+/** Hebrew (or other language) overlay of a lesson: only the human-readable parts. */
+export interface LessonTranslation {
+  title: string;
+  summary: string;
+  hints: string[];
+  quiz: { q: string; options: string[]; explain?: string }[];
+  /** one entry per item of check.code in the English lesson (null = no message) */
+  messages?: (string | null)[];
+  gameMessage?: string;
+  body: string;
+}
+
 export interface Lesson {
   /** `${trackId}/${slug}` */
   id: string;
@@ -69,6 +81,8 @@ export interface Lesson {
   level?: 'beginner' | 'intermediate' | 'advanced';
   /** Lesson text (markdown) */
   body: string;
+  /** Hebrew translation, when one exists */
+  he?: LessonTranslation;
 }
 
 export interface Track {
