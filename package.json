@@ -2,6 +2,15 @@
   "name": "code-academy",
   "private": true,
   "version": "0.1.0",
+  "description": "Learn to code with lessons, quizzes and a multi-language sandbox",
+  "homepage": "https://alonpeleg.github.io/code-academy/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AlonPeleg/code-academy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AlonPeleg/code-academy/issues"
+  },
   "type": "module",
   "scripts": {
     "predev": "node scripts/copy-pyodide.mjs",
@@ -37,6 +46,5 @@
   },
   "engines": {
     "node": ">=18"
-  },
-  "description": "Learn to code with lessons, quizzes and a multi-language sandbox"
+  }
 }

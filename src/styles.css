@@ -270,3 +270,5 @@ table.result td.null { color: var(--muted); font-style: italic; }
 .setup-card summary strong::before { content: '▸ '; color: var(--muted, #8b93b5); }
 .setup-card[open] summary strong::before { content: '▾ '; }
 .setup-card .setup-guide { border-top: none; margin-top: 4px; padding-top: 0; }
+
+.header nav a.gh-link { display: inline-flex; align-items: center; padding: 6px 8px; margin-right: 4px; }

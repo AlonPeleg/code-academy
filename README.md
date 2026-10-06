@@ -1,5 +1,7 @@
 # Code Academy
 
+Live site: https://alonpeleg.github.io/code-academy/ - Source: https://github.com/AlonPeleg/code-academy
+
 A "learn to code" website with lessons, quizzes and a multi-language sandbox. Everything runs in the browser except compiled languages (C, C++, C#, Java, Go, Rust), which are sent to a code-execution server.
 
 ## Run it
