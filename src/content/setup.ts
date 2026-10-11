@@ -439,6 +439,7 @@ const BY_TRACK: Record<string, string[]> = {
   'project-react-blog': ['node', 'react', 'git'],
   'game-python': ['python', 'pygame'],
   'game-js': ['html', 'games-js'],
+  'game-rpg': ['html', 'games-js'],
   'game-c': ['c', 'games-native'],
   'game-cpp': ['cpp', 'games-native'],
   'game-csharp': ['csharp', 'games-native'],

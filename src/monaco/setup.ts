@@ -89,6 +89,18 @@ declare const game: {
   circle(x: number, y: number, radius: number, color?: GameColor): void;
   line(x1: number, y1: number, x2: number, y2: number, color?: GameColor, width?: number): void;
   text(x: number, y: number, message: unknown, color?: GameColor, size?: number): void;
+  /** Pixel art: the built-in pictures (for example game.art.warrior.idle, game.art.slime.idle, game.art.tiles.grass). game.art.fx.* are ANIMATIONS: lists of pictures (frames), e.g. game.art.fx.explosion[2] */
+  art: Record<string, Record<string, any>>;
+  /** Letter -> color used in pixel art ('.' is transparent) */
+  PALETTE: Record<string, GameColor>;
+  /** Draw pixel art (a list of text rows). options: flip to face left, scale (2 = twice as big), alpha (0 to 1) */
+  sprite(x: number, y: number, art: string[], options?: { flip?: boolean; scale?: number; alpha?: number }): void;
+  /** Width and height of a piece of art in pixels */
+  spriteSize(art: string[]): { w: number; h: number };
+  /** Scroll the world: afterwards (x, y) is the top-left corner of the screen. Call game.camera(0, 0) to draw the HUD. */
+  camera(x: number, y: number): void;
+  /** See-through drawing, 1 = solid, 0 = invisible. Resets every frame */
+  alpha(a: number): void;
   /** True every frame while the key is held. Names: left right up down space a d w s z x enter */
   keyDown(name: string): boolean;
   /** True only on the frame the key goes down */

@@ -4,6 +4,8 @@
  * Runs a JavaScript game. The learner's program gets a `game` object (the same tiny engine as the Python one,
  * with JavaScript names) and draws on an OffscreenCanvas. Also runs headless for "Check answer".
  */
+import { ART, PALETTE } from './jsGameArt';
+
 const W = 320;
 const H = 240;
 
@@ -41,17 +43,97 @@ function num(name: string, v: any): number {
   return v;
 }
 
+
+/* ---- pixel-art sprites: art is an array of equal-length strings, '.' or ' ' is transparent, other letters come from game.PALETTE ---- */
+const spriteCache = new Map<string, OffscreenCanvas>();
+function artRows(art: any): string[] {
+  if (!Array.isArray(art) || !art.length || art.some((r) => typeof r !== 'string')) {
+    throw new TypeError('game.sprite needs the art as a list of text rows, like game.art.slime.idle, but got ' + JSON.stringify(art)?.slice(0, 60));
+  }
+  const w = art[0].length;
+  art.forEach((r: string, i: number) => {
+    if (r.length !== w) throw new TypeError(`Every row of the art must have the same length. Row ${i + 1} has ${r.length} letters but row 1 has ${w}.`);
+    for (const ch of r) if (ch !== '.' && ch !== ' ' && !PALETTE[ch]) throw new TypeError(`Unknown color letter "${ch}" in the art. Use '.' for empty or a letter from game.PALETTE.`);
+  });
+  return art;
+}
+function spriteCanvas(rows: string[], flip: boolean): OffscreenCanvas {
+  const key = (flip ? 'f' : 'n') + rows.join('|');
+  let c = spriteCache.get(key);
+  if (c) return c;
+  const w = rows[0].length;
+  const h = rows.length;
+  c = new OffscreenCanvas(w, h);
+  const cx = c.getContext('2d')!;
+  rows.forEach((row, y) => {
+    for (let x = 0; x < w; x++) {
+      const ch = row[x];
+      if (ch === '.' || ch === ' ') continue;
+      const col = PALETTE[ch];
+      cx.fillStyle = `rgb(${col[0]},${col[1]},${col[2]})`;
+      cx.fillRect(flip ? w - 1 - x : x, y, 1, 1);
+    }
+  });
+  if (spriteCache.size > 400) spriteCache.clear();
+  spriteCache.set(key, c);
+  return c;
+}
+let camX = 0;
+let camY = 0;
+let alphaNow = 1;
+function applyView() {
+  if (!ctx) return;
+  ctx.setTransform(1, 0, 0, 1, -Math.round(camX), -Math.round(camY));
+  ctx.globalAlpha = alphaNow;
+}
+
 const game = {
   WIDTH: W,
   HEIGHT: H,
   BLACK: [0, 0, 0], WHITE: [255, 255, 255], GRAY: [130, 130, 150], DARK: [22, 24, 44],
   RED: [239, 68, 68], ORANGE: [249, 115, 22], YELLOW: [250, 204, 21], GREEN: [34, 197, 94],
   CYAN: [34, 211, 238], BLUE: [59, 130, 246], PURPLE: [168, 85, 247], PINK: [244, 114, 182],
+  PALETTE,
+  art: ART,
   clear(c?: Color) {
     const col = color(c, [0, 0, 0]);
     if (!ctx) return;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.globalAlpha = 1;
     ctx.fillStyle = css(col);
     ctx.fillRect(0, 0, W, H);
+    ctx.restore();
+  },
+  /** Draw pixel art. options: { flip: true to face left, scale: 2 to draw twice as big, alpha: 0..1 } */
+  sprite(x: number, y: number, art: any, options?: { flip?: boolean; scale?: number; alpha?: number }) {
+    num('x', x); num('y', y);
+    const rows = artRows(art);
+    const scale = options?.scale ?? 1;
+    num('scale', scale);
+    if (!ctx) return;
+    const c = spriteCanvas(rows, !!options?.flip);
+    ctx.imageSmoothingEnabled = false;
+    const prev = ctx.globalAlpha;
+    if (options?.alpha !== undefined) ctx.globalAlpha = prev * Math.max(0, Math.min(1, options.alpha));
+    ctx.drawImage(c, Math.round(x), Math.round(y), c.width * scale, c.height * scale);
+    ctx.globalAlpha = prev;
+  },
+  /** { w, h } of a piece of art in pixels (before scaling) */
+  spriteSize(art: any) {
+    const rows = artRows(art);
+    return { w: rows[0].length, h: rows.length };
+  },
+  /** Scroll the world: everything drawn afterwards is shifted so (x, y) is at the top-left of the screen. game.camera(0, 0) for the HUD. */
+  camera(x: number, y: number) {
+    camX = num('x', x);
+    camY = num('y', y);
+    applyView();
+  },
+  /** See-through drawing: 1 is solid, 0 is invisible. Resets every frame. */
+  alpha(a: number) {
+    alphaNow = Math.max(0, Math.min(1, num('alpha', a)));
+    applyView();
   },
   rect(x: number, y: number, w: number, h: number, c?: Color) {
     num('x', x); num('y', y); num('width', w); num('height', h);
@@ -130,6 +212,8 @@ function errText(err: any): string {
 function runFrame(dt: number) {
   try {
     updateFn?.(dt);
+    camX = 0; camY = 0; alphaNow = 1;
+    applyView();
     drawFn?.();
   } catch (e) {
     frameError = errText(e);
@@ -161,6 +245,7 @@ const AsyncFunction = Object.getPrototypeOf(async function () { /* */ }).constru
 
 function reset() {
   game.stop();
+  camX = 0; camY = 0; alphaNow = 1;
   down.clear();
   pressed.clear();
   mdown = false;
