@@ -17,7 +17,7 @@ export const REMOTE_LANGS: Record<string, RemoteLang> = {
   cpp: { label: 'C++', fileName: 'main.cpp', judge0Id: 54, judge0Match: /^C\+\+ \(GCC/i, pistonName: 'c++' },
   csharp: { label: 'C#', fileName: 'Program.cs', judge0Id: 51, judge0Match: /^C# /i, pistonName: 'csharp' },
   java: { label: 'Java', fileName: 'Main.java', judge0Id: 62, judge0Match: /^Java \(OpenJDK/i, pistonName: 'java' },
-  go: { label: 'Go', fileName: 'main.go', judge0Id: 60, judge0Match: /^Go \(/i, pistonName: 'go' },
+  go: { label: 'Go', fileName: 'main.go', judge0Id: 60, judge0Match: /^Go \(1\.1\d(\.\d+)*\)/i, pistonName: 'go' },
   rust: { label: 'Rust', fileName: 'main.rs', judge0Id: 73, judge0Match: /^Rust \(/i, pistonName: 'rust' },
 };
 
